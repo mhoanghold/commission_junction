@@ -20,7 +20,8 @@ class CommissionJunction
     :link_search       => 'https://link-search.api.cj.com/v2/link-search',
     :advertiser_lookup => 'https://advertiser-lookup.api.cj.com/v3/advertiser-lookup',
     :categories        => 'https://support-services.api.cj.com/v2/categories',
-    :commissions       => 'https://commission-detail.api.cj.com/v3/commissions'
+    :commissions       => 'https://commission-detail.api.cj.com/v3/commissions',
+    :item_detail       => 'https://commission-detail.api.cj.com/v3/item-detail/'
   }
 
   def initialize(developer_key, website_id, timeout = 10)
@@ -131,6 +132,21 @@ class CommissionJunction
     @cj_objects
   end
 
+  def item_detail(params = {})
+    raise ArgumentError, "params must be a Hash; got #{params.class} instead" unless params.is_a?(Hash)
+
+    @cj_objects = []
+
+    begin
+      response = self.class.get(WEB_SERVICE_URIS[:item_detail] + params[:original_action_id].to_s + '?original-action-id=' + params[:original_action_id].to_s)
+      return extract_contents(response, 'item_details')
+    rescue Timeout::Error
+      @total_matched = @records_returned = @page_number = 0
+    end
+
+    @cj_objects
+  end
+
   def commissions(params = {})
     raise ArgumentError, "params must be a Hash; got #{params.class} instead" unless params.is_a?(Hash)
 
@@ -199,5 +215,8 @@ class CommissionJunction
   end
 
   class Commission < CjObject
+  end
+
+  class ItemDetail < CjObject
   end
 end
